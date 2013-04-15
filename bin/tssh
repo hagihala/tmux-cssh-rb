@@ -1,0 +1,101 @@
+#!/usr/bin/env ruby
+
+require 'inifile'
+require 'optparse'
+require 'tssh'
+
+options = {
+  :login          => nil,
+  :config         => "#{ENV['HOME']}/.tsshrc",
+#  :tile_x         => nil,
+#  :tile_y         => nil,
+#  :ssh            => '/usr/local/bin/proxychains4 ssh',
+  :ssh            => 'ssh',
+  :ssh_args       => '',
+#  :remote_command => nil,
+#  :hosts          => nil,
+#  :session_max    => 256,
+#  :ping_test      => nil,
+#  :ping_timeout   => nil,
+#  :sock           => nil,
+#  :sorthosts      => false,
+#  :slave_settings_set => nil,
+#  :master_settings_set => nil,
+#  :interleave     => nil,
+  :debug          => 0,
+
+  :panes_per_window => 36
+}
+
+args = {}
+
+ARGV.options do |opt|
+  opt.on('-l', '--login USERNAME') do |v|
+    args[:login] = v
+  end
+  opt.on('--ssh SSH_COMMAND') do |v|
+    args[:ssh] = v
+  end
+  opt.on('--ssh_args SSH_ARGUMENTS') do |v|
+    args[:ssh_args] = v
+  end
+  opt.on('--debug DEBUG_LEVEL') do |v|
+    args[:debug] = v.to_i
+  end
+  opt.on("--panes_per_window NUM") do |v|
+    args[:panes_per_window] = v
+  end
+  opt.parse!
+end
+
+# arg "debug" is specially concerned
+unless args[:debug].nil?
+  options[:debug] = args[:debug]
+end
+
+if not options[:config].nil? and File.exists?(options[:config])
+  # config file options overwrite the default options
+  config = IniFile.load(options[:config])
+  config['global'].each do |k, v|
+    options[k.to_sym] = v
+    STDERR.puts "option from config file: #{k} => #{v}" if options[:debug] > 0
+  end
+else
+  STDERR.puts "Config file #{options[:config]} does not exist" if options[:debug] > 0
+end
+
+# command_line args are the most prioritized
+args.each do |k, v|
+  STDERR.puts "option from commandline argument: #{k} => #{v}" if options[:debug] > 0
+  options[k] = v
+end
+
+# XXX
+hosts = ARGV
+
+tssh = TmuxClusterSSH.new options, hosts
+tssh.run
+
+__END__
+
+session_name = "tssh-#{$$}"
+ARGV.each_with_index do |host, i|
+  if options[:login].nil?
+    ssh_command = "#{options[:ssh]} #{options[:ssh_args]} #{host}"
+  else
+    ssh_command = "#{options[:ssh]} #{options[:ssh_args]} #{options[:login]}@#{host}"
+  end
+  STDERR.puts ssh_command if options[:debug] > 0
+  if i == 0
+    system("tmux new -d -s #{session_name} 'echo #{host}; exec #{ssh_command}'")
+  elsif i  % options[:panes_per_window] == 0
+    system("tmux setw -t #{session_name} synchronize-panes on > /dev/null")
+    system("tmux neww -t #{session_name} 'echo host; exec #{ssh_command}'")
+  else
+    system("tmux splitw -t #{session_name} 'echo #{host}; exec #{ssh_command}'")
+    system("tmux selectl -t #{session_name} tiled > /dev/null")
+  end
+end
+
+system("tmux setw -t #{session_name} synchronize-panes on > /dev/null")
+exec("tmux attach -t #{session_name}")
