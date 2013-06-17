@@ -1,5 +1,5 @@
 class TmuxClusterSSH
-  def initialize options, hosts
+  def initialize options, hosts, logger
     @options = options
     @hosts = hosts
     raise "No hosts specified" if @hosts.count == 0
@@ -20,7 +20,7 @@ class TmuxClusterSSH
     (0..num_panes-1).each do |i|
       host = @hosts[i]
       if host.nil?
-        command = "'exec echo dummy'"
+        command = "'echo;echo empty'"
       else
         command = "'echo #{host};exec #{ssh_command(host)}'"
       end
