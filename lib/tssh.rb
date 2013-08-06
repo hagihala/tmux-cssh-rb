@@ -13,9 +13,23 @@ class TmuxClusterSSH
     end
   end
 
+  def calc_num_panes(num)
+    if num == 1
+      return 1
+    elsif num.even?
+      return num
+    end
+
+    sqrt_num = Math.sqrt(num)
+    if sqrt_num - sqrt_num.floor == 0
+      return num
+    else
+      return sqrt_num.ceil ** 2
+    end
+  end
+
   def run
-    num_panes =
-      @hosts.count > 2 ? Math.sqrt(@hosts.count).ceil ** 2 : @hosts.count
+    num_panes = calc_num_panes(@hosts.count)
     session_name = "tssh-#{$$}"
     (0..num_panes-1).each do |i|
       host = @hosts[i]
