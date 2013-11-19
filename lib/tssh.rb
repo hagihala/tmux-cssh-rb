@@ -15,30 +15,34 @@ class TmuxClusterSSH
 
   def calc_num_panes(num)
     # XXX should read tmux implementation
-    if num == 1
+    case num
+    when 1
       return 1
-    elsif num == 2
+    when 2
       return 2
-    elsif num > 6 and num <= 9
-      return 9
-    elsif num > 20 and num <= 25
+    when 7..9
+      return 0
+    when 17..20
+      return 20
+    when 21..25
       return 25
-    elsif num > 25 and num <= 30
+    when 26..30
       return 30
-    elsif num > 30 and num <= 36
+    when 31..36
       return 36
-    elsif num > 36
+    when 37..Float.INFINITY
       return calc_num_panes(num - 36) + 36
-    elsif num.even?
-      return num
-    end
-
-    sqrt_num = Math.sqrt(num)
-    if sqrt_num - sqrt_num.floor == 0
+    when ->(n) { n.even? }
       return num
     else
-      return sqrt_num.ceil ** 2
+      sqrt_num = Math.sqrt(num)
+      if sqrt_num - sqrt_num.floor == 0
+        return num
+      else
+        return sqrt_num.ceil ** 2
+      end
     end
+
   end
 
   def run
