@@ -30,7 +30,7 @@ class TmuxClusterSSH
       return 30
     when 31..36
       return 36
-    when 37..Float.INFINITY
+    when 37..Float::INFINITY
       return calc_num_panes(num - 36) + 36
     when ->(n) { n.even? }
       return num
