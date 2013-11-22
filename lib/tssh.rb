@@ -20,8 +20,10 @@ class TmuxClusterSSH
       return 1
     when 2
       return 2
+    when 5..6
+      return 6
     when 7..9
-      return 0
+      return 9
     when 17..20
       return 20
     when 21..25
