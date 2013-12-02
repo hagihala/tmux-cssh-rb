@@ -1,6 +1,7 @@
 Gem::Specification.new do |s|
   s.name = 'tmux-cssh'
   s.summary = 'Cluster-SSH on tmux'
+  s.homepage = 'https://github.com/yshh/tmux-cssh-rb'
   s.version = '0.1.0'
   s.authors = ['Yusuke Hagihara']
   s.email = 'yusuke.hagihara@gmail.com'

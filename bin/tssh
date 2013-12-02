@@ -5,61 +5,69 @@ require 'inifile'
 require 'optparse'
 require 'tssh'
 
+# default options
 options = {
-  :login          => nil,
-  :config         => "#{ENV['HOME']}/.tsshrc",
-#  :tile_x         => nil,
-#  :tile_y         => nil,
-#  :ssh            => '/usr/local/bin/proxychains4 ssh',
-  :ssh            => 'ssh',
-  :ssh_args       => '',
-#  :remote_command => nil,
-#  :hosts          => nil,
-#  :session_max    => 256,
-#  :ping_test      => nil,
-#  :ping_timeout   => nil,
-#  :sock           => nil,
-#  :sorthosts      => false,
-#  :slave_settings_set => nil,
-#  :master_settings_set => nil,
-#  :interleave     => nil,
-  :debug          => 0,
+  login:               nil,
+  config:              "#{ENV['HOME']}/.tsshrc",
+#  tile_x:              nil,
+#  tile_y:              nil,
+#  ssh:                 '/usr/local/bin/proxychains4 ssh',
+  ssh:                 'ssh',
+  ssh_args:            '',
+#  remote_command:      nil,
+#  hosts:               nil,
+#  session_max:         256,
+#  ping_test:           nil,
+#  ping_timeout:        nil,
+#  sock:                nil,
+#  sorthosts:           false,
+#  slave_settings_set:  nil,
+#  master_settings_set: nil,
+#  interleave:          nil,
+  debug:               0,
 
-  :panes_per_window => 36
+  panes_per_window:    36,
 }
 
 args = {}
 
 ARGV.options do |opt|
-  opt.on('-l', '--login USERNAME') do |v|
-    args[:login] = v
-  end
-  opt.on('-c', '--config FILE') do |v|
+  opt.on('-l', '--login USERNAME',
+         "SSH login name (default: #{options[:login]})"
+        ) { |v| args[:login] = v }
+  opt.on('-c', '--config FILE',
+         "Config file path (default: #{options[:config]})"
+        ) { |v|
     raise "Config file '#{v}' does not exist" unless File.exists?(v)
     args[:config] = v
-  end
-  opt.on('--ssh SSH_COMMAND') do |v|
-    args[:ssh] = v
-  end
+  }
+  opt.on('--ssh SSH_COMMAND',
+         "Custom SSH command (default: #{options[:config]})"
+        ) { |v| args[:ssh] = v }
   opt.on('--ssh_args SSH_ARGUMENTS') do |v|
     args[:ssh_args] = v
   end
-  opt.on('--debug DEBUG_LEVEL') do |v|
-    args[:debug] = v.to_i
-  end
-  opt.on("--panes_per_window NUM") do |v|
-    args[:panes_per_window] = v
-  end
+  opt.on('--debug DEBUG_LEVEL',
+         "Debug level [0-2] (default: #{options[:debug]})"
+        ) { |v| args[:debug] = v.to_i }
+  opt.on("--panes_per_window NUM",
+        "Max panes opened on one window (default: #{options[:panes_per_window]})"
+        ) { |v| args[:panes_per_window] = v }
   opt.parse!
 end
 
 logger = Logger.new(STDERR)
 
-# args "debug" and "config" is specially concerned
+# args "debug" and "config" are specially concerned
 unless args[:debug].nil?
   options[:debug] = args[:debug]
 end
-logger.level = options[:debug] ? Logger::DEBUG : Logger::WARN
+logger.level = case options[:debug]
+               when 0                  then Logger::WARN
+               when 1                  then Logger::INFO
+               when 2                  then Logger::DEBUG
+               else raise "Invalid debug level: '#{options[:debug]}'"
+               end
 
 unless args[:config].nil?
   options[:config] = args[:config]

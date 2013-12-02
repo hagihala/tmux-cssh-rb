@@ -2,6 +2,7 @@ class TmuxClusterSSH
   def initialize options, hosts, logger
     @options = options
     @hosts = hosts
+    @logger = logger
     raise "No hosts specified" if @hosts.count == 0
   end
 
@@ -47,6 +48,17 @@ class TmuxClusterSSH
 
   end
 
+  def run_command cmd
+    @logger.info cmd
+    res = system cmd
+    case res
+    when nil
+      raise "command `#{cmd}` failed"
+    when false
+      raise "command `#{cmd}` exited with status #{$?}"
+    end
+  end
+
   def run
     num_panes = calc_num_panes(@hosts.count)
     session_name = "tssh-#{$$}"
@@ -60,22 +72,23 @@ class TmuxClusterSSH
       STDERR.puts command if @options[:debug] > 0
       if i == 0
         # create new session
-        system("tmux new -d -s #{session_name} #{command}")
-        system("tmux setw -t #{session_name} synchronize-panes on > /dev/null")
-        system("tmux setw -t #{session_name} remain-on-exit on > /dev/null")
+        run_command "tmux new -d -s #{session_name} #{command}"
+        run_command "tmux setw -t #{session_name} synchronize-panes on > /dev/null"
+        run_command "tmux setw -t #{session_name} remain-on-exit on > /dev/null"
       elsif i  % @options[:panes_per_window] == 0
         # create new window on existing session
-        system("tmux neww -t #{session_name} #{command}")
-        system("tmux setw -t #{session_name} synchronize-panes on > /dev/null")
-        system("tmux setw -t #{session_name} remain-on-exit on > /dev/null")
+        run_command "tmux neww -t #{session_name} #{command}"
+        run_command "tmux setw -t #{session_name} synchronize-panes on > /dev/null"
+        run_command "tmux setw -t #{session_name} remain-on-exit on > /dev/null"
       else
         # add pane to active window
-        system("tmux splitw -t #{session_name} #{command}")
-        system("tmux selectl -t #{session_name} tiled > /dev/null")
+        run_command "tmux splitw -t #{session_name} #{command}"
+        run_command "tmux selectl -t #{session_name} tiled > /dev/null"
       end
     end
 
     # attach to the session
-    exec("tmux attach -t #{session_name}")
+    run_command 'tmux select-pane -t 0'
+    exec "tmux attach -t #{session_name}"
   end
 end
