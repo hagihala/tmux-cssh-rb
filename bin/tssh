@@ -52,7 +52,7 @@ ARGV.options do |opt|
         ) { |v| args[:debug] = v.to_i }
   opt.on("--panes_per_window NUM",
         "Max panes opened on one window (default: #{options[:panes_per_window]})"
-        ) { |v| args[:panes_per_window] = v }
+        ) { |v| args[:panes_per_window] = v.to_i }
   opt.parse!
 end
 
@@ -78,7 +78,12 @@ if not options[:config].nil? and File.exists?(options[:config])
   # config file options overwrite the default options
   config = IniFile.load(options[:config])
   config['global'].each do |k, v|
-    options[k.to_sym] = v
+    # XXX
+    if %w(panes_per_window debug).include? k
+      options[k.to_sym] = v.to_i
+    else
+      options[k.to_sym] = v
+    end
     logger.debug "option from config file: #{k} => #{v}"
   end
 else

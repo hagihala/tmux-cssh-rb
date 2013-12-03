@@ -16,36 +16,13 @@ class TmuxClusterSSH
 
   def calc_num_panes(num)
     # XXX should read tmux implementation
-    case num
-    when 1
-      return 1
-    when 2
-      return 2
-    when 5..6
-      return 6
-    when 7..9
-      return 9
-    when 17..20
-      return 20
-    when 21..25
-      return 25
-    when 26..30
-      return 30
-    when 31..36
-      return 36
-    when 37..Float::INFINITY
-      return calc_num_panes(num - 36) + 36
-    when ->(n) { n.even? }
-      return num
-    else
-      sqrt_num = Math.sqrt(num)
-      if sqrt_num - sqrt_num.floor == 0
-        return num
-      else
-        return sqrt_num.ceil ** 2
-      end
+    if num > @options[:panes_per_window]
+      return calc_num_panes(num - @options[:panes_per_window])
     end
 
+    sqrt_num = Math.sqrt(num)
+    panes = sqrt_num.ceil * sqrt_num.floor
+    panes >= num ? panes : sqrt_num.ceil ** 2
   end
 
   def run_command cmd
@@ -86,9 +63,10 @@ class TmuxClusterSSH
         run_command "tmux selectl -t #{session_name} tiled > /dev/null"
       end
     end
+    # XXX
+    run_command 'tmux select-pane -t 0'
 
     # attach to the session
-    run_command 'tmux select-pane -t 0'
     exec "tmux attach -t #{session_name}"
   end
 end
