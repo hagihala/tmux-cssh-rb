@@ -17,7 +17,7 @@ class TmuxClusterSSH
   def calc_num_panes(num)
     # XXX should read tmux implementation
     if num > @options[:panes_per_window]
-      return calc_num_panes(num - @options[:panes_per_window])
+      return @options[:panes_per_window] + calc_num_panes(num - @options[:panes_per_window])
     end
 
     sqrt_num = Math.sqrt(num)
