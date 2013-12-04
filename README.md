@@ -5,7 +5,29 @@
 * Ruby 1.9.3 or later
 * tmux
 
-## How to use
+## Installing
+
+### Install from RubyGems repository
+
+coming soon...
+
+### Build gem and install
+
+```
+git clone https://github.com/yshh/tmux-cssh-rb.git path/to/tmux-cssh-rb
+cd path/to/tmux-cssh-rb
+gem build tmux-cssh.gemspec
+gem install tmux-cssh-*.gem
+```
+
+### Use Bundler
+
+Write the line below to your Gemfile:
+```ruby
+gem 'tmux-cssh', git: 'https://github.com/yshh/tmux-cssh-rb.git'
+```
+
+## Usage
 
 ```
 % tssh -h
@@ -37,7 +59,7 @@ bind-key g setw synchronize-panes
 
 ### How to exit
 
-Panes do not close after the ssh sessions terminate
+Panes do not close after the ssh session terminates
 (using `set remain-on-exit`) so that you can see error messages in the case
 ssh session terminated unexpectedly by errors such as connection error and
 authentication failure.
@@ -47,6 +69,12 @@ You can close dead panes with tmux commands:
 * `kill-pane` (closes selected pane; bound to `C-b x` by default) or
 * `kill-window` (closes all panes in current window; bound to `C-b &` by default)
 
+## OS limits
+
+Opening many tmux panes hits some OS limits.
+
+* num of pty
+* max open files
+
 ## Known issues
 
-XXX
