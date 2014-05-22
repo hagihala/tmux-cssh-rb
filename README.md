@@ -13,7 +13,7 @@ coming soon...
 
 ### Build gem and install
 
-```
+```sh
 git clone https://github.com/yshh/tmux-cssh-rb.git path/to/tmux-cssh-rb
 cd path/to/tmux-cssh-rb
 gem build tmux-cssh.gemspec
