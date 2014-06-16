@@ -8,6 +8,6 @@ Gem::Specification.new do |s|
   s.email = 'yusuke.hagihara@gmail.com'
   s.files = `git ls-files`.split($/)
   s.executables = s.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
-  s.add_dependency 'inifile', '~> 2.0.0'
+  s.add_dependency 'inifile', '~> 2.0'
   s.required_ruby_version = '>= 1.9.3'
 end
